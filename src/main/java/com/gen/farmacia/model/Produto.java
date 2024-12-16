@@ -4,12 +4,14 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -41,4 +43,8 @@ public class Produto {
 	@Positive(message = "O preço deve ser maior do que zero!")
 	private BigDecimal preco;
 	
+	@ManyToOne
+	@JsonIgnoreProperties("produto")
+	private Categoria categoria;
+		
 }

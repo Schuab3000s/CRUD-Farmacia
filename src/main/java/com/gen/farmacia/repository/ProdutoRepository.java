@@ -10,15 +10,26 @@ import org.springframework.stereotype.Repository;
 import com.gen.farmacia.model.Produto;
 
 @Repository
-public interface ProdutoRepository extends JpaRepository<Produto, Long>{
+public interface ProdutoRepository extends JpaRepository<Produto, Long> {
 
 	public List<Produto> findAllByNomeContainingIgnoreCase(@Param("nome") String nome);
 
-	public List<Produto> findAllByDataValidade(@Param("dataValidade") LocalDate dataValidade);
-	
-	public List<Produto> findAllByDataValidadeBetween(
-		    @Param("dataInicio") LocalDate dataInicio, 
-		    @Param("dataFim") LocalDate dataFim
-		);
+	public List<Produto> findAllByDataFabricacao(@Param("data_fabricacao") LocalDate dataFabricacao);
+
+	public List<Produto> findAllByDataFabricacaoBetween(@Param("data_inicio") LocalDate dataInicio,
+			@Param("data_fim") LocalDate dataFim);
+
+	public List<Produto> findAllByDataValidade(@Param("data_validade") LocalDate dataValidade);
+
+	public List<Produto> findAllByDataValidadeBetween(@Param("data_inicio") LocalDate dataInicio,
+			@Param("data_fim") LocalDate dataFim);
+
+	public List<Produto> findAllByDataValidadeAfter(@Param("data_validade") LocalDate dataValidade);
+
+	public List<Produto> findAllByDataFabricacaoBefore(@Param("data_fabricacao") LocalDate dataFabricacao);
+
+	public List<Produto> findAllByDataFabricacaoInMonth(@Param("mes") int mes, @Param("ano") int ano);
+
+	public List<Produto> findAllByDataValidadeInMonth(@Param("mes") int mes, @Param("ano") int ano);
 
 }

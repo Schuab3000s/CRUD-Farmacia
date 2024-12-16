@@ -2,7 +2,6 @@ package com.gen.farmacia.controller;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -19,10 +18,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
 
 import com.gen.farmacia.model.Produto;
-import com.gen.farmacia.repository.ProdutoRepository;
+import com.gen.farmacia.service.ProdutoService;
 
 import jakarta.validation.Valid;
 
@@ -32,59 +30,66 @@ import jakarta.validation.Valid;
 public class ProdutoController {
 
 	@Autowired
-	private ProdutoRepository produtoRepository;
+	private ProdutoService produtoService;
 
 	@GetMapping
 	public ResponseEntity<List<Produto>> getAll() {
-		return ResponseEntity.ok(produtoRepository.findAll());
+		return ResponseEntity.ok(produtoService.buscarTodos());
 	}
 
 	@GetMapping("/id/{id}")
-	private ResponseEntity<Produto> getById(@PathVariable Long id) {
-		return produtoRepository.findById(id).map(resposta -> ResponseEntity.ok(resposta))
+	public ResponseEntity<Produto> getById(@PathVariable Long id) {
+		return produtoService.buscarPorId(id).map(ResponseEntity::ok)
 				.orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
 	}
 
-	@GetMapping("/produto/{nome}")
-	public ResponseEntity<List<Produto>> getByNome(@PathVariable String nome) {
-		return ResponseEntity.ok(produtoRepository.findAllByNomeContainingIgnoreCase(nome));
+	@GetMapping("/nome")
+	public ResponseEntity<List<Produto>> getByNome(@RequestParam String nome) {
+		return ResponseEntity.ok(produtoService.buscarPorNome(nome));
 	}
 
 	@GetMapping("/validade")
 	public ResponseEntity<List<Produto>> getByDataValidade(
-			@RequestParam("dataValidade") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataValidade) {
-		return ResponseEntity.ok(produtoRepository.findAllByDataValidade(dataValidade));
+			@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataValidade) {
+		return ResponseEntity.ok(produtoService.buscarPorDataValidade(dataValidade));
 	}
 
 	@GetMapping("/validade/intervalo")
 	public ResponseEntity<List<Produto>> getByDataValidadeBetween(
-			@RequestParam("data_inicio") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate data_inicio,
-			@RequestParam("data_fim") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate data_fim) {
-		return ResponseEntity.ok(produtoRepository.findAllByDataValidadeBetween(data_inicio, data_fim));
+			@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataInicio,
+			@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataFim) {
+		return ResponseEntity.ok(produtoService.buscarPorIntervaloDeValidade(dataInicio, dataFim));
+	}
+
+	@GetMapping("/fabricacao/mes")
+	public ResponseEntity<List<Produto>> getByFabricacaoNoMes(@RequestParam int mes, @RequestParam int ano) {
+		return ResponseEntity.ok(produtoService.buscarPorFabricacaoNoMes(mes, ano));
+	}
+
+	@GetMapping("/validade/mes")
+	public ResponseEntity<List<Produto>> getByValidadeNoMes(@RequestParam int mes, @RequestParam int ano) {
+		return ResponseEntity.ok(produtoService.buscarPorValidadeNoMes(mes, ano));
+	}
+
+	@GetMapping("/fora-validade")
+	public ResponseEntity<List<Produto>> getProdutosForaDaValidade() {
+		return ResponseEntity.ok(produtoService.buscarForaDaValidade());
 	}
 
 	@PostMapping
 	public ResponseEntity<Produto> post(@Valid @RequestBody Produto produto) {
-		return ResponseEntity.status(HttpStatus.CREATED).body(produtoRepository.save(produto));
+		return ResponseEntity.status(HttpStatus.CREATED).body(produtoService.salvar(produto));
 	}
 
 	@PutMapping
 	public ResponseEntity<Produto> put(@Valid @RequestBody Produto produto) {
-		return produtoRepository.findById(produto.getId())
-				.map(resposta -> ResponseEntity.status(HttpStatus.CREATED).body(produtoRepository.save(produto)))
+		return produtoService.atualizar(produto).map(ResponseEntity::ok)
 				.orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
 	}
 
-	@ResponseStatus(HttpStatus.NO_CONTENT)
 	@DeleteMapping("/{id}")
+	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void delete(@PathVariable Long id) {
-
-		Optional<Produto> produto = produtoRepository.findById(id);
-
-		if (produto.isEmpty()) {
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-		}
-
-		produtoRepository.deleteById(id);
+		produtoService.deletar(id);
 	}
 }
